@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Navbar from './components/NavBar';
 import MyBookings from './pages/MyBookings';
+import FlightDetails from './components/FlightDetails';
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/mis-reservas" element={<MyBookings />} />
+        <Route path="/vuelos/:id" element={<FlightDetails />} />
       </Routes>
     </Router>
   );

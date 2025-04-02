@@ -10,39 +10,39 @@ export const getMyBookings = async (req, res) => {
     }
   };
   export const createBooking = async (req, res) => {
-    const { flightId } = req.body;
+    const { flightId, seatNumber, passengerName, passengerEmail } = req.body;
   
     try {
-      console.log('➡️ Iniciando creación de reserva');
-      console.log('User:', req.user.userId, 'Flight:', flightId);
-  
       const existing = await Booking.findOne({ user: req.user.userId, flight: flightId });
       if (existing) {
         return res.status(400).json({ message: 'Ya reservaste este vuelo' });
       }
   
       const flight = await Flight.findById(flightId);
-      if (!flight) {
-        return res.status(404).json({ message: 'Vuelo no encontrado' });
-      }
+      if (!flight) return res.status(404).json({ message: 'Vuelo no encontrado' });
   
-      if (flight.seatsAvailable <= 0) {
-        return res.status(400).json({ message: 'No hay asientos disponibles' });
-      }
+      const seat = flight.seats.find((s) => s.number === seatNumber);
+      if (!seat) return res.status(400).json({ message: 'Asiento inválido' });
+      if (seat.reserved) return res.status(400).json({ message: 'Asiento ya reservado' });
+  
+      // Marcar asiento como reservado
+      seat.reserved = true;
+      flight.seatsAvailable -= 1;
+      await flight.save();
   
       const newBooking = await Booking.create({
         user: req.user.userId,
         flight: flightId,
+        seatNumber,
+        passengerName,
+        passengerEmail,
       });
   
-      flight.seatsAvailable -= 1;
-      await flight.save();
-  
-      console.log('✅ Reserva creada correctamente');
       res.status(201).json(newBooking);
     } catch (error) {
-      console.log('❌ Error en backend:', error.message);
-      res.status(500).json({ message: 'Error al crear la reserva', error: error.message });
+      console.log(error);
+      res.status(500).json({ message: 'Error al crear la reserva', error });
     }
   };
+  
   

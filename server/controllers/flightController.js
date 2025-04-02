@@ -42,33 +42,20 @@ export const getFlights = async (req, res) => {
 
 // Nuevo vuelo
 export const createFlight = async (req, res) => {
-  const {
-    airline,
-    origin,
-    destination,
-    departureDate,
-    arrivalDate,
-    price,
-    seatsAvailable
-  } = req.body;
-
-  try {
-    const newFlight = new Flight({
-      airline,
-      origin,
-      destination,
-      departureDate,
-      arrivalDate,
-      price,
-      seatsAvailable
-    });
-
-    const savedFlight = await newFlight.save();
-    res.status(201).json(savedFlight);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
+    try {
+      const flight = new Flight({
+        ...req.body,
+        seats: generarAsientos(), // genera 12 asientos 
+      });
+  
+      await flight.save();
+      res.status(201).json(flight);
+    } catch (error) {
+      console.error("Error al crear vuelo:", error);
+      res.status(500).json({ message: 'Error al crear vuelo', error });
+    }
+  };
+  
 
 // Obtener vuelo por ID
 export const getFlightById = async (req, res) => {
@@ -118,4 +105,16 @@ export const updateFlight = async (req, res) => {
       res.status(400).json({ message: err.message });
     }
   };
+
+// Generador de asientos: 4 filas x 3 columnas 
+const generarAsientos = (filas = 4, columnas = ['A', 'B', 'C']) => {
+    const seats = [];
+    for (let i = 1; i <= filas; i++) {
+      for (let col of columnas) {
+        seats.push({ number: `${i}${col}`, reserved: false });
+      }
+    }
+    return seats;
+  };
+  
   

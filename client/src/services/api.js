@@ -5,6 +5,7 @@ const API = axios.create({
   baseURL: 'http://localhost:5000/api',
 });
 
+  
 // Enviar token automáticamente si existe
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -15,5 +16,10 @@ API.interceptors.request.use((config) => {
 });
 
 export const getFlights = () => API.get('/flights');
-export const bookFlight = (flightId) => API.post('/bookings', { flightId });
+export const bookFlight = (flightId, data) => {
+    return API.post('/bookings', {
+      flightId,
+      ...data, 
+    });
+  };
 export const getMyBookings = () => API.get('/bookings/me');

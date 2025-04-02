@@ -2,6 +2,7 @@ import { Box, Text, Badge, Stack, Button, useToast } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
 import { bookFlight } from "../services/api";
+import { Link } from "react-router-dom";
 
 const FlightCard = ({ flight, userBookings = [] }) => {
   const { user } = useAuth();
@@ -45,7 +46,11 @@ const FlightCard = ({ flight, userBookings = [] }) => {
         <Text>🕓 Llegada: {format(new Date(flight.arrivalDate), "PPpp")}</Text>
         <Badge colorScheme="green">USD ${flight.price}</Badge>
         <Text>🪑 Asientos: {flight.seatsAvailable}</Text>
-
+        <Link to={`/vuelos/${flight._id}`}>
+          <Button colorScheme="blue" mt={3} size="sm">
+            Ver detalles
+          </Button>
+        </Link>
         {user && (
           <Button
             colorScheme={yaReservado ? "gray" : "teal"}
