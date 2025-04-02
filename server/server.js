@@ -5,6 +5,7 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import flightRoutes from './routes/flights.js';
 import authRoutes from './routes/auth.js';
+import bookingRoutes from './routes/booking.js';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/flights', flightRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // DB connection
 connectDB();

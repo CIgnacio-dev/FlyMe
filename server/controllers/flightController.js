@@ -2,14 +2,43 @@
 import Flight from '../models/Flight.js';
 
 // Obtener todos los vuelos
+// Obtener todos los vuelos con filtros
 export const getFlights = async (req, res) => {
-  try {
-    const flights = await Flight.find();
-    res.json(flights);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    try {
+      const { origin, destination, departureDate, minPrice, maxPrice } = req.query;
+  
+      const filters = {};
+  
+      if (origin) {
+        filters.origin = { $regex: new RegExp(origin, 'i') }; // búsqueda flexible
+      }
+  
+      if (destination) {
+        filters.destination = { $regex: new RegExp(destination, 'i') };
+      }
+  
+      if (departureDate) {
+        // Buscar vuelos que salgan ese día (sin importar la hora)
+        const start = new Date(departureDate);
+        const end = new Date(departureDate);
+        end.setHours(23, 59, 59, 999);
+  
+        filters.departureDate = { $gte: start, $lte: end };
+      }
+  
+      if (minPrice || maxPrice) {
+        filters.price = {};
+        if (minPrice) filters.price.$gte = parseFloat(minPrice);
+        if (maxPrice) filters.price.$lte = parseFloat(maxPrice);
+      }
+  
+      const flights = await Flight.find(filters);
+      res.json(flights);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+  
 
 // Nuevo vuelo
 export const createFlight = async (req, res) => {
