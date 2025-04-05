@@ -15,21 +15,22 @@ const FlightDetails = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
+  const fetchFlight = async () => {
+    try {
+      const res = await getFlights();
+      const selected = res.data.find(f => f._id === id);
+      setFlight(selected);
+    } catch (err) {
+      console.error('Error al cargar vuelo', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchFlight = async () => {
-      try {
-        const res = await getFlights(); // traer todos los vuelos
-        const selected = res.data.find(f => f._id === id);
-        setFlight(selected);
-      } catch (err) {
-        console.error('Error al cargar vuelo', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFlight();
   }, [id]);
+  
 
   const handleReserve = async () => {
     try {
@@ -46,6 +47,7 @@ const FlightDetails = () => {
         duration: 3000,
         isClosable: true,
       });
+      await fetchFlight();
     } catch (err) {
       const msg = err.response?.data?.message || 'Error al reservar';
       toast({
@@ -63,7 +65,7 @@ const FlightDetails = () => {
   if (!flight) return <Text>Vuelo no encontrado</Text>;
 
   return (
-    <Box p={5}>
+    <Box p={5}maxW="500px" mx="auto" borderWidth={1} borderRadius="lg" boxShadow="lg"> 
       <Heading mb={4}>Reservar vuelo {flight.origin} → {flight.destination}</Heading>
       {selectedSeat && (
   <HStack spacing={2}>

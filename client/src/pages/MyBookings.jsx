@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Box,
   Heading,
@@ -7,74 +7,157 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  Button,
+  useToast,
+  Icon,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
-import { getMyBookings } from "../services/api";
+import { getMyBookings, cancelBooking } from "../services/api";
 import { format } from "date-fns";
+import { FaPlaneDeparture, FaUser, FaChair, FaTrashAlt } from "react-icons/fa";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const cancelRef = useRef();
+  const toast = useToast();
+
+  const fetchBookings = async () => {
+    try {
+      const res = await getMyBookings();
+      setBookings(res.data);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await getMyBookings();
-        setBookings(res.data);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-        setError("Error al cargar tus reservas");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
   }, []);
 
+  const openCancelDialog = (booking) => {
+    setSelectedBooking(booking);
+    setIsDialogOpen(true);
+  };
+
+  const handleCancel = async () => {
+    try {
+      await cancelBooking(selectedBooking._id);
+      toast({
+        title: "Reserva cancelada",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+      fetchBookings(); // refrescar
+    } catch (err) {
+      toast({
+        title: "Error al cancelar",
+        description: err.response?.data?.message || "Error inesperado",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsDialogOpen(false);
+    }
+  };
+
   if (loading) return <Spinner size="xl" mt={10} />;
-  if (error)
-    return (
-      <Alert status="error" mt={10}>
-        <AlertIcon />
-        {error}
-      </Alert>
-    );
 
   return (
     <Box p={5}>
-      <Heading mb={4}>Mis Reservas</Heading>
-      <Stack spacing={4}>
-        {bookings.length === 0 ? (
-          <Text>No tienes reservas.</Text>
-        ) : (
-          bookings.map((booking) => (
+      <Heading mb={6}>Mis Reservas</Heading>
+
+      {bookings.length === 0 ? (
+        <Alert status="info">
+          <AlertIcon />
+          No tienes reservas aún.
+        </Alert>
+      ) : (
+        <Stack
+          spacing={4}
+          direction={{ base: "column", md: "row" }}
+          flexWrap="wrap"
+        >
+          {bookings.map((booking) => (
             <Box
               key={booking._id}
               p={4}
+              w={{ base: "100%", md: "48%" }}
               borderWidth="1px"
               borderRadius="md"
               shadow="sm"
+              bg="gray.50"
             >
-              <Text fontWeight="bold">
-                {booking.flight.origin} → {booking.flight.destination}
-              </Text>
-              <Text>
-                Asiento: <strong>{booking.seatNumber}</strong>
-              </Text>
-              <Text>
-                Nombre: <strong>{booking.passengerName}</strong>
-              </Text>
-              <Text>
-                Email: <strong>{booking.passengerEmail}</strong>
-              </Text>
-              <Text>
-                Reservado el: {format(new Date(booking.createdAt), "PPpp")}
-              </Text>
+              <Stack spacing={1}>
+                <Text fontSize="lg" fontWeight="bold">
+                  <Icon as={FaPlaneDeparture} mr={2} color="teal.500" />
+                  {booking.flight.origin} → {booking.flight.destination}
+                </Text>
+                <Text>
+                  <Icon as={FaChair} mr={2} />
+                  Asiento: <strong>{booking.seatNumber}</strong>
+                </Text>
+                <Text>
+                  <Icon as={FaUser} mr={2} />
+                  {booking.passengerName} — {booking.passengerEmail}
+                </Text>
+                <Text color="gray.500" fontSize="sm">
+                  Reservado el {format(new Date(booking.createdAt), "PPpp")}
+                </Text>
+              </Stack>
+
+              <Button
+                size="sm"
+                colorScheme="red"
+                mt={3}
+                leftIcon={<FaTrashAlt />}
+                onClick={() => openCancelDialog(booking)}
+              >
+                Cancelar reserva
+              </Button>
             </Box>
-          ))
-        )}
-      </Stack>
+          ))}
+        </Stack>
+      )}
+
+      {/* Dialogo de confirmación */}
+      <AlertDialog
+        isOpen={isDialogOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => setIsDialogOpen(false)}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Cancelar reserva
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              ¿Estás seguro que deseas cancelar esta reserva?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={() => setIsDialogOpen(false)}>
+                No
+              </Button>
+              <Button colorScheme="red" onClick={handleCancel} ml={3}>
+                Sí, cancelar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

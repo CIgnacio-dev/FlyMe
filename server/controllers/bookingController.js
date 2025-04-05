@@ -9,7 +9,7 @@ export const getMyBookings = async (req, res) => {
       res.status(500).json({ message: 'Error al obtener reservas', error });
     }
   };
-  export const createBooking = async (req, res) => {
+export const createBooking = async (req, res) => {
     const { flightId, seatNumber, passengerName, passengerEmail } = req.body;
   
     try {
@@ -42,6 +42,38 @@ export const getMyBookings = async (req, res) => {
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: 'Error al crear la reserva', error });
+    }
+  };
+
+export const cancelBooking = async (req, res) => {
+    const bookingId = req.params.id;
+  
+    try {
+      const booking = await Booking.findById(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Reserva no encontrada" });
+      }
+  
+      // Buscar el vuelo relacionado
+      const flight = await Flight.findById(booking.flight);
+      if (flight) {
+        const seat = flight.seats.find(s => s.number === booking.seatNumber);
+        if (seat) {
+          seat.reserved = false;
+          seat.passengerName = '';
+          seat.passengerEmail = '';
+          flight.seatsAvailable += 1;
+          await flight.save();
+        }
+      }
+  
+      // Eliminar la reserva
+      await booking.deleteOne();
+  
+      res.json({ message: "Reserva cancelada y asiento liberado" });
+    } catch (error) {
+      console.error("Error al cancelar reserva:", error);
+      res.status(500).json({ message: "Error al cancelar la reserva" });
     }
   };
   

@@ -23,3 +23,5 @@ export const bookFlight = (flightId, data) => {
     });
   };
 export const getMyBookings = () => API.get('/bookings/me');
+export const cancelBooking = (bookingId) =>
+  API.delete(`/bookings/${bookingId}`);
