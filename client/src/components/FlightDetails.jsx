@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Spinner, VStack, Input, Button, Heading, Text, useToast } from '@chakra-ui/react';
+import { Box, Button, Text, Tooltip, VStack, Input, Heading, Spinner, useToast, HStack } from "@chakra-ui/react";
+import { InfoIcon } from '@chakra-ui/icons';
 import SeatSelector from '../components/SeatSelector';
 import { getFlights, bookFlight } from '../services/api';
 
@@ -64,6 +65,14 @@ const FlightDetails = () => {
   return (
     <Box p={5}>
       <Heading mb={4}>Reservar vuelo {flight.origin} → {flight.destination}</Heading>
+      {selectedSeat && (
+  <HStack spacing={2}>
+    <InfoIcon color="teal.500" />
+    <Text fontWeight="medium" color="teal.600">
+      Asiento seleccionado: {selectedSeat}
+    </Text>
+  </HStack>
+)}
 
       <VStack spacing={4} align="stretch">
         <SeatSelector
