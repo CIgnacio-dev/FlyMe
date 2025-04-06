@@ -20,7 +20,8 @@ const SeatSelector = ({ seats = [], selectedSeat, onSelect }) => {
   return (
     <Box>
       {/* Resumen visual con íconos */}
-      <HStack key={rowNum} spacing={4} mb={2} justify="center" flexWrap="wrap">
+      <HStack spacing={4} mb={2} justify="center" flexWrap="wrap">
+
         <HStack>
           <Icon as={CheckCircleIcon} color="green.400" boxSize={5} />
           <Text fontWeight="medium" color="green.600">

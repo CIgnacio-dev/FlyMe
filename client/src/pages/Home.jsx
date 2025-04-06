@@ -4,6 +4,8 @@ import { Box, Heading, SimpleGrid, Spinner } from "@chakra-ui/react";
 import { getFlights, getMyBookings } from '../services/api';
 import FlightCard from "../components/FlightCard";
 import { useAuth } from '../context/AuthContext';
+import FlightFilter from "../components/FlightFilter";
+
 
 const Home = () => {
   const [flights, setFlights] = useState([]);
@@ -35,10 +37,12 @@ const Home = () => {
   return (
     <Box p={5}>
       <Heading mb={4}>Vuelos disponibles ✈️</Heading>
+      <FlightFilter flights={flights} onFilter={setFlights} />
 
       {loading ? (
         <Spinner size="xl" />
       ) : (
+        
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={5}>
           {flights.map((flight) => (
             <FlightCard

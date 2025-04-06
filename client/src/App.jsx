@@ -18,7 +18,7 @@ const App = () => {
       >
         <Navbar />
 
-        {/* Contenido que se expande para empujar el footer hacia abajo */}
+       
         <Box as="main" flex="1">
           <Routes>
             <Route path="/" element={<Home />} />

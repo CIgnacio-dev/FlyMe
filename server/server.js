@@ -6,6 +6,8 @@ import connectDB from './config/db.js';
 import flightRoutes from './routes/flights.js';
 import authRoutes from './routes/auth.js';
 import bookingRoutes from './routes/booking.js';
+import locationRoutes from './routes/locations.js';
+
 
 dotenv.config();
 
@@ -18,6 +20,8 @@ app.use(express.json());
 app.use('/api/flights', flightRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/locations', locationRoutes);
+
 
 // DB connection
 connectDB();
