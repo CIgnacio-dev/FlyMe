@@ -9,13 +9,18 @@ import bookingRoutes from './routes/booking.js';
 import locationRoutes from './routes/locations.js';
 
 
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = ['https://fly-me-git-main-carlos-projects-4811c668.vercel.app'];
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(express.json());
 app.use('/api/flights', flightRoutes);
 app.use('/api/auth', authRoutes);
