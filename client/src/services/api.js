@@ -1,12 +1,15 @@
 import axios from 'axios';
 
+
+
 const isProduction = import.meta.env.MODE === 'production';
 
 const API = axios.create({
-  baseURL: isProduction
-    ? 'https://flyme-5dxt.onrender.com/api'  
-    : 'http://localhost:5000/api',           
+  baseURL: import.meta.env.DEV
+    ? 'http://localhost:5000/api'
+    : 'https://flyme-5dxt.onrender.com/api',
 });
+
 
 // Enviar token automáticamente si existe
 API.interceptors.request.use((config) => {
