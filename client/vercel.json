@@ -1,6 +1,13 @@
 {
     "rewrites": [
-      { "source": "/(.*)", "destination": "/" }
+      {
+        "source": "/api/(.*)",
+        "destination": "https://flyme-5dxt.onrender.com"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/"
+      }
     ]
   }
   
