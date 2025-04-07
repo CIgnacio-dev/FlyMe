@@ -2,7 +2,7 @@
     "rewrites": [
       {
         "source": "/api/(.*)",
-        "destination": "https://flyme-5dxt.onrender.com"
+        "destination": "https://flyme-api.onrender.com/api/$1"
       },
       {
         "source": "/(.*)",
