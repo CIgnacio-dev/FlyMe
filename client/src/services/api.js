@@ -16,6 +16,7 @@ API.interceptors.request.use((config) => {
   }
   return config;
 });
+console.log("Axios BaseURL:", API.defaults.baseURL);
 
 export const getFlights = () => API.get('/flights');
 export const bookFlight = (flightId, data) =>
