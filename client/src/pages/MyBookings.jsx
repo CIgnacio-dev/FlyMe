@@ -20,6 +20,9 @@ import {
 import { getMyBookings, cancelBooking } from "../services/api";
 import { format } from "date-fns";
 import { FaPlaneDeparture, FaUser, FaChair, FaTrashAlt } from "react-icons/fa";
+import QRCode from "react-qr-code";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -58,7 +61,7 @@ const MyBookings = () => {
         duration: 3000,
         isClosable: true,
       });
-      fetchBookings(); // refrescar
+      fetchBookings();
     } catch (err) {
       toast({
         title: "Error al cancelar",
@@ -71,6 +74,66 @@ const MyBookings = () => {
       setIsDialogOpen(false);
     }
   };
+
+  const handleDownloadPDF = async (booking) => {
+    const element = document.getElementById(`qr-${booking._id}`);
+    if (!element) return;
+  
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+  
+    const pdf = new jsPDF("p", "mm", "a4");
+    const margin = 20;
+    let y = margin;
+  
+    // Título sin emojis
+    pdf.setFillColor(49, 130, 206); // azul
+    pdf.rect(0, 0, 210, 30, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20);
+    pdf.text("FlyMe - Pase de Abordar", margin, y + 7);
+  
+    y += 40;
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 0, 0);
+  
+    // Valores con fallback
+    pdf.text(`Pasajero: ${booking.passengerName || "N/A"}`, margin, y);
+    y += 8;
+    pdf.text(`Email: ${booking.passengerEmail || "N/A"}`, margin, y);
+    y += 8;
+    pdf.text(
+      `Vuelo: ${booking.flight?.origin || "?"} → ${booking.flight?.destination || "?"}`,
+      margin,
+      y
+    );
+    y += 8;
+    pdf.text(`Asiento: ${booking.seatNumber || "N/A"}`, margin, y);
+    y += 8;
+    const fecha = booking.flight?.departureDate
+      ? format(new Date(booking.flight.departureDate), "PPpp")
+      : "N/A";
+    pdf.text(`Fecha: ${fecha}`, margin, y);
+    y += 10;
+  
+    pdf.setDrawColor(180);
+    pdf.line(margin, y, 210 - margin, y);
+    y += 10;
+  
+    // Código QR centrado
+    const qrWidth = 100;
+    const centerX = (210 - qrWidth) / 2;
+    pdf.addImage(imgData, "PNG", centerX, y, qrWidth, qrWidth);
+    y += qrWidth + 10;
+  
+    pdf.setFontSize(10);
+    pdf.setTextColor(100);
+    pdf.text(`Código de reserva: ${booking._id}`, margin, y);
+  
+    pdf.save(`pase-${booking._id}.pdf`);
+  };
+  
+  
 
   if (loading) return <Spinner size="xl" mt={10} />;
 
@@ -93,45 +156,49 @@ const MyBookings = () => {
             <Box
               key={booking._id}
               p={4}
-              w={{ base: "100%", md: "48%" }}
               borderWidth="1px"
-              borderRadius="md"
-              shadow="sm"
-              bg="gray.50"
+              borderRadius="lg"
+              mb={4}
+              w="full"
+              maxW="sm"
             >
-              <Stack spacing={1}>
-                <Text fontSize="lg" fontWeight="bold">
-                  <Icon as={FaPlaneDeparture} mr={2} color="teal.500" />
-                  {booking.flight.origin} → {booking.flight.destination}
-                </Text>
-                <Text>
-                  <Icon as={FaChair} mr={2} />
-                  Asiento: <strong>{booking.seatNumber}</strong>
-                </Text>
-                <Text>
-                  <Icon as={FaUser} mr={2} />
-                  {booking.passengerName} — {booking.passengerEmail}
-                </Text>
-                <Text color="gray.500" fontSize="sm">
-                  Reservado el {format(new Date(booking.createdAt), "PPpp")}
-                </Text>
-              </Stack>
+              <Text fontWeight="bold" fontSize="lg">
+                {booking.flight.origin} → {booking.flight.destination}
+              </Text>
+              <Text>Asiento: {booking.seatNumber}</Text>
+              <Text>Pasajero: {booking.passengerName}</Text>
+              <Text>Correo: {booking.passengerEmail}</Text>
+              <Text>Fecha: {format(new Date(booking.flight.departureDate), "PPpp")}</Text>
+
+              {/* Código QR */}
+              <Box id={`qr-${booking._id}`} mt={4} p={2} bg="white" textAlign="center">
+                <QRCode
+                  value={JSON.stringify({
+                    id: booking._id,
+                    pasajero: booking.passengerName,
+                    vuelo: `${booking.flight.origin} → ${booking.flight.destination}`,
+                    asiento: booking.seatNumber,
+                    correo: booking.passengerEmail,
+                  })}
+                  size={128}
+                />
+              </Box>
 
               <Button
-                size="sm"
-                colorScheme="red"
                 mt={3}
-                leftIcon={<FaTrashAlt />}
-                onClick={() => openCancelDialog(booking)}
+                size="sm"
+                colorScheme="blue"
+                onClick={() => handleDownloadPDF(booking)}
+                w="full"
               >
-                Cancelar reserva
+                Descargar pase de abordar
               </Button>
             </Box>
           ))}
         </Stack>
       )}
 
-      {/* Dialogo de confirmación */}
+      {/* Diálogo de confirmación */}
       <AlertDialog
         isOpen={isDialogOpen}
         leastDestructiveRef={cancelRef}
