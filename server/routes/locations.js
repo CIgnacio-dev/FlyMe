@@ -5,14 +5,14 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const origin = await Flight.find().distinct("origin");
-    const destinations = await Flight.find().distinct("destination");
-    res.json({ origin, destinations });
+    const origins = await Flight.distinct("origin");
+    const destinations = await Flight.distinct("destination");
+    
+    res.json({ origins, destinations });
   } catch (error) {
     console.error("Error en /api/locations:", error.message);
     res.status(500).json({ message: "Error al obtener ubicaciones" });
   }
 });
-
 
 export default router;
