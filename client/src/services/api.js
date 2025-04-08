@@ -2,10 +2,9 @@ import axios from 'axios';
 
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL
-    ? 'http://localhost:5000/api'
-    : 'https://flyme-5dxt.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 });
+
 
 
 // Enviar token automáticamente si existe
